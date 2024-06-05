@@ -15,11 +15,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
-<<<<<<< HEAD
 	extBank "github.com/khofesh/my-grpc-proto/protogen/go/bank"
-=======
-	extBank "github.com/timpamungkas/my-grpc-proto/protogen/go/bank"
->>>>>>> be49f0454fbbac2a2c8cded8575e21f3a1ac3f4b
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
