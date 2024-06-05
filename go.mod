@@ -1,4 +1,4 @@
-module github.com/timpamungkas/my-grpc-proto
+module github.com/khofesh/my-grpc-proto
 
 go 1.20
 
