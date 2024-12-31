@@ -36,7 +36,11 @@ func request_HelloService_SayHello_0(ctx context.Context, marshaler runtime.Mars
 	var protoReq extHello.HelloRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -49,7 +53,11 @@ func local_request_HelloService_SayHello_0(ctx context.Context, marshaler runtim
 	var protoReq extHello.HelloRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -62,7 +70,11 @@ func request_HelloService_SayManyHellos_0(ctx context.Context, marshaler runtime
 	var protoReq extHello.HelloRequest
 	var metadata runtime.ServerMetadata
 
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
@@ -83,7 +95,7 @@ func request_HelloService_SayHelloToEveryone_0(ctx context.Context, marshaler ru
 	var metadata runtime.ServerMetadata
 	stream, err := client.SayHelloToEveryone(ctx)
 	if err != nil {
-		grpclog.Errorf("Failed to start streaming: %v", err)
+		grpclog.Infof("Failed to start streaming: %v", err)
 		return nil, metadata, err
 	}
 	dec := marshaler.NewDecoder(req.Body)
@@ -94,25 +106,25 @@ func request_HelloService_SayHelloToEveryone_0(ctx context.Context, marshaler ru
 			break
 		}
 		if err != nil {
-			grpclog.Errorf("Failed to decode request: %v", err)
+			grpclog.Infof("Failed to decode request: %v", err)
 			return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 		}
 		if err = stream.Send(&protoReq); err != nil {
 			if err == io.EOF {
 				break
 			}
-			grpclog.Errorf("Failed to send request: %v", err)
+			grpclog.Infof("Failed to send request: %v", err)
 			return nil, metadata, err
 		}
 	}
 
 	if err := stream.CloseSend(); err != nil {
-		grpclog.Errorf("Failed to terminate client stream: %v", err)
+		grpclog.Infof("Failed to terminate client stream: %v", err)
 		return nil, metadata, err
 	}
 	header, err := stream.Header()
 	if err != nil {
-		grpclog.Errorf("Failed to get header from client: %v", err)
+		grpclog.Infof("Failed to get header from client: %v", err)
 		return nil, metadata, err
 	}
 	metadata.HeaderMD = header
@@ -127,7 +139,7 @@ func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler ru
 	var metadata runtime.ServerMetadata
 	stream, err := client.SayHelloContinuous(ctx)
 	if err != nil {
-		grpclog.Errorf("Failed to start streaming: %v", err)
+		grpclog.Infof("Failed to start streaming: %v", err)
 		return nil, metadata, err
 	}
 	dec := marshaler.NewDecoder(req.Body)
@@ -138,11 +150,11 @@ func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler ru
 			return err
 		}
 		if err != nil {
-			grpclog.Errorf("Failed to decode request: %v", err)
+			grpclog.Infof("Failed to decode request: %v", err)
 			return err
 		}
 		if err := stream.Send(&protoReq); err != nil {
-			grpclog.Errorf("Failed to send request: %v", err)
+			grpclog.Infof("Failed to send request: %v", err)
 			return err
 		}
 		return nil
@@ -154,12 +166,12 @@ func request_HelloService_SayHelloContinuous_0(ctx context.Context, marshaler ru
 			}
 		}
 		if err := stream.CloseSend(); err != nil {
-			grpclog.Errorf("Failed to terminate client stream: %v", err)
+			grpclog.Infof("Failed to terminate client stream: %v", err)
 		}
 	}()
 	header, err := stream.Header()
 	if err != nil {
-		grpclog.Errorf("Failed to get header from client: %v", err)
+		grpclog.Infof("Failed to get header from client: %v", err)
 		return nil, metadata, err
 	}
 	metadata.HeaderMD = header
@@ -224,21 +236,21 @@ func RegisterHelloServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 // RegisterHelloServiceHandlerFromEndpoint is same as RegisterHelloServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterHelloServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.NewClient(endpoint, opts...)
+	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()

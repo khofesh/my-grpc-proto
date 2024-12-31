@@ -1,6 +1,6 @@
 module github.com/khofesh/my-grpc-proto
 
-go 1.20
+go 1.23.4
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
